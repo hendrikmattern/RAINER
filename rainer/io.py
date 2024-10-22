@@ -6,9 +6,12 @@ import nibabel as nib
 import json
 
 
-def load_nii_as_np_array(filename):
-    nii_file = nib.load(filename)
-    return np.squeeze(nii_file.get_fdata()), nii_file.affine, nii_file.header
+def load_nii(filename):
+    return nib.load(filename)
+
+
+def extract_img_as_np_from_nii(nii):
+    return np.squeeze(nii.get_fdata())
 
 
 def load_json(filename):
@@ -17,7 +20,7 @@ def load_json(filename):
 
 
 def save_np_array_as_nii(np_array, affine, header, filename):
-    # todo: handle Nones / look at VDM np_save
+    # todo: auto check 4th dimension
     nii = nib.Nifti1Image(np_array, affine, header)
     nib.save(nii, filename)
 

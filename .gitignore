@@ -1,5 +1,7 @@
 # general settings
 venv
+build
+dist
 __pycache__
 .conda
 .idea

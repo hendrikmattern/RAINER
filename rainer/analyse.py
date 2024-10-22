@@ -5,21 +5,16 @@ from scipy.signal.windows import hann, hamming, blackman
 from scipy.stats import binned_statistic
 
 
-def get_frequency_spectrum(image_data, tr, window_name="hanning", window=None,
-                           do_detrend=True, detrend_degree=2,
-                           normalize_spectrum="default", n_dummy_volumes=0):
+def get_spectrum_4d(image_data_4d, tr_in_sec, window_name="hanning", window=None,
+                    normalize_spectrum="default", n_dummy_volumes=0):  # todo: compute for given freq bins to start with
     # computes the frequency spectrum of a 4D data set (3D + t)
 
-    if len(image_data.shape) != 4:
+    if len(image_data_4d.shape) != 4:
         warnings.warn("\nImage data is NOT 4D\n")
 
     # exclude dummy volumes and compute number of measurements
-    image_data = image_data[:, :, :, n_dummy_volumes:]
-    n = image_data.shape[3]
-
-    # de-trend the data: degree == 0: mean; 1: mean+linear; 2: mean+linear+quadratic, and so on
-    if do_detrend:
-        image_data = detrend_4d_data(image_data, detrend_degree)
+    image_data_4d = image_data_4d[:, :, :, n_dummy_volumes:]
+    n = image_data_4d.shape[3]
 
     # set up window if required
     if window is None:
@@ -33,19 +28,19 @@ def get_frequency_spectrum(image_data, tr, window_name="hanning", window=None,
             window = np.ones(n)
 
     # compute complex frequency spectrum (n-measurements long, but mirrored at n/2)
-    freq_spect = fft(image_data * window, axis=3)
+    freq_spect = fft(image_data_4d * window, axis=3)
     # take the absolute and crop/remove mirrored part
     freq_spect = np.abs(freq_spect)[:, :, :, 0:n // 2]
     # normalize frequency spectrum with selected strategy
     if normalize_spectrum.lower() == "default":
         freq_spect = 2.0 * freq_spect / n
     # frequency bins for which the FFT was computes
-    freq_bins = fftfreq(n, tr)[0:n // 2]
+    freq_bins = fftfreq(n, tr_in_sec)[0:n // 2]
 
     return freq_spect, freq_bins
 
 
-def detrend_4d_data(data_4d, degree):
+def detrend_data_4d(data_4d, degree):
     # use polynomial model to de-trend data
     #  degree == 0: mean; 1: mean+linear; 2: mean+linear+quadratic, and so on
     n = data_4d.shape[3]
@@ -62,7 +57,7 @@ def detrend_4d_data(data_4d, degree):
     return data_4d
 
 
-def bin_freq_spect(freq_spect, freq_bins_old, freq_bins_new):  # todo: better name e.g. by adding _1d or _4d 
+def bin_freq_spect(freq_spect, freq_bins_old, freq_bins_new):  # todo: better name e.g. by adding _1d or _4d
     # re-bin the data
     freq_spect_binned, freq_bins_new, bin_number = binned_statistic(freq_bins_old,
                                                                     freq_spect.reshape((-1, freq_spect.shape[3])),
