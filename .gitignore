@@ -4,3 +4,4 @@ __pycache__
 .conda
 .idea
 .ipynb_checkpoints
+.pypirc
