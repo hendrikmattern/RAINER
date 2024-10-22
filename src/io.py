@@ -8,7 +8,6 @@ import json
 
 def load_nii_as_np_array(filename):
     nii_file = nib.load(filename)
-    # todo: double check currentl implementation of nib.load()
     return np.squeeze(nii_file.get_fdata()), nii_file.affine, nii_file.header
 
 
@@ -18,7 +17,6 @@ def load_json(filename):
 
 
 def save_np_array_as_nii(np_array, affine, header, filename):
-    # todo: try nii save without all the other stuff.
     # todo: handle Nones / look at VDM np_save
     nii = nib.Nifti1Image(np_array, affine, header)
     nib.save(nii, filename)
